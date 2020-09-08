@@ -1,0 +1,32 @@
+{
+	"name" : "mistralys/version-parser",
+	"description" : "Class used to parse version numbers.",
+	"type" : "library",
+	"license" : "",
+	"authors" : 
+	[
+		{
+			"email" : "s.mordziol@mistralys.eu",
+			"name" : "Sebastian Mordziol",
+			"role" : "Lead"
+		}
+	],
+	"autoload" : 
+	{
+		"psr-4" : 
+		{
+			"Mistralys\\VersionParser\\" : "src/"
+		},
+		"classmap" : 
+		[
+			"src/"
+		]
+	},
+	"require-dev" : 
+	{
+		"phpunit/phpunit" : ">=8.5",
+		"phpstan/phpstan" : ">=0.12"
+	},
+	"minimum-stability" : "dev",
+	"prefer-stable" : true
+}
