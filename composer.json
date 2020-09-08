@@ -2,7 +2,7 @@
 	"name" : "mistralys/version-parser",
 	"description" : "Class used to parse version numbers.",
 	"type" : "library",
-	"license" : "",
+	"license" : "MIT",
 	"authors" : 
 	[
 		{
