@@ -30,6 +30,13 @@ final class ParseTest extends TestCase
                 'normalized' => '1.1.1'
             ),
             array(
+                'label' => 'Triple digit version',
+                'version' => '1.12.348',
+                'expected' => 1012348,
+                'int' => 1012348000000,
+                'normalized' => '1.12.348'
+            ),
+            array(
                 'label' => 'Triple digit version, higher numbers',
                 'version' => '5.12.134',
                 'expected' => 5012134,
@@ -39,22 +46,50 @@ final class ParseTest extends TestCase
             array(
                 'label' => 'With beta tag',
                 'version' => '1.0.0-beta',
-                'expected' => 1000000.0001,
-                'int' => 1000000000100,
+                'expected' => 999999.000101,
+                'int' => 999999000101,
+                'normalized' => '1.0.0'
+            ),
+            array(
+                'label' => 'With beta tag, numbered 2',
+                'version' => '1.0.0-beta2',
+                'expected' => 999999.000201,
+                'int' => 999999000201,
                 'normalized' => '1.0.0'
             ),
             array(
                 'label' => 'With alpha tag',
                 'version' => '1.0.0-alpha',
-                'expected' => 1000000.000001,
-                'int' => 1000000000001,
+                'expected' => 999999.000002,
+                'int' => 999999000002,
                 'normalized' => '1.0.0'
             ),
             array(
                 'label' => 'With release candidate tag',
                 'version' => '1.0.0-rc',
-                'expected' => 1000000.01,
-                'int' => 1000000010000,
+                'expected' => 999999.010001,
+                'int' => 999999010001,
+                'normalized' => '1.0.0'
+            ),
+            array(
+                'label' => 'With branch name',
+                'version' => '1.0.0-BranchName',
+                'expected' => 1000000,
+                'int' => 1000000000000,
+                'normalized' => '1.0.0'
+            ),
+            array(
+                'label' => 'With branch name and release candidate tag',
+                'version' => '1.0.0-BranchName-rc',
+                'expected' => 999999.010001,
+                'int' => 999999010001,
+                'normalized' => '1.0.0'
+            ),
+            array(
+                'label' => 'With underscores as separators',
+                'version' => '1.0.0_BranchName_rc',
+                'expected' => 999999.010001,
+                'int' => 999999010001,
                 'normalized' => '1.0.0'
             )
         );
@@ -62,7 +97,7 @@ final class ParseTest extends TestCase
         foreach($tests as $test)
         {
             $version = VersionParser::create($test['version']);
-            
+
             $this->assertEquals($test['expected'], $version->getBuildNumber(), $test['label']);
             $this->assertEquals($test['int'], $version->getBuildNumberInt(), $test['label']);
             $this->assertEquals($test['normalized'], $version->getVersion(), $test['label']);
