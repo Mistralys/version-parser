@@ -134,7 +134,7 @@ class VersionParser
     */
     public function getBuildNumberInt() : int
     {
-        return intval($this->buildNumber * 1000000);
+        return intval($this->getBuildNumber() * 1000000);
     }
     
    /**
@@ -166,20 +166,22 @@ class VersionParser
     {
         return $this->parts[2];
     }
-    
-   /**
-    * Retrieves the full version with tag appended, if any.
-    * 
-    * @return string
-    */
+
+    /**
+     * Retrieves the full version with tag appended, if any.
+     *
+     * @return string
+     */
     public function getTagVersion() : string
     {
+        $version = $this->getVersion();
+
         if(!$this->hasTag())
         {
-            return $this->getVersion();
+            return $version;
         }
         
-        return $this->getVersion().'-'.$this->getTag();
+        return $version.'-'.$this->getTag();
     }
     
    /**
@@ -319,6 +321,7 @@ class VersionParser
     private function extractTag() : string
     {
         $version = $this->version;
+        $version = str_replace('_', '-', $version);
         
         $hyphen = strpos($version, '-');
         
@@ -361,11 +364,16 @@ class VersionParser
     
     private function formatTagNumber() : string
     {
+        $positions = 2 * 3;
         $weight = $this->tagWeights[$this->getTagType()];
         
         if($weight > 0)
         {
-            return '.'.sprintf('%0'.$weight.'d', $this->tagNumber);
+            $number = sprintf('%0'.$weight.'d', $this->tagNumber);
+            $number = str_pad($number, $positions, '0', STR_PAD_RIGHT);
+
+            $number = intval(str_repeat('9', $positions)) - intval($number);
+            return '.'.$number;
         }
         
         return '';
@@ -438,14 +446,36 @@ class VersionParser
             sprintf('%03d', $this->getPatchVersion())
         );
         
-        $number = implode('', $parts);
+        $number = floatval(implode('', $parts));
         
         if($this->tagNumber > 0)
         {
-            $number .= $this->formatTagNumber();
+            $number -= floatval($this->formatTagNumber());
         }
         
-        $this->buildNumber = floatval($number);
+        $this->buildNumber = $number;
+    }
+
+    /**
+     * Whether this version is higher than the specified version.
+     *
+     * @param VersionParser $version
+     * @return bool
+     */
+    public function isHigherThan(VersionParser $version) : bool
+    {
+        return $this->getBuildNumberInt() > $version->getBuildNumberInt();
+    }
+
+    /**
+     * Whether this version is lower than the specified version.
+     *
+     * @param VersionParser $version
+     * @return bool
+     */
+    public function isLowerThan(VersionParser $version) : bool
+    {
+        return $this->getBuildNumberInt() < $version->getBuildNumberInt();
     }
 }
 
