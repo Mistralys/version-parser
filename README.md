@@ -14,10 +14,14 @@ This allows the use of a wide range of version strings. Some examples:
   - 1.1
   - 1.1.5
   - 1.145.147
+  - 1.1.5-rc1
   - 1.1.5-beta
   - 1.1.5-beta2
   - 1.1.5-BranchName
   - 1.1.5-BranchName-alpha2
+
+  > NOTE: Hyphens are typically used as separators, but underscores
+    are acceptable as well. Spaces are not supported.
 
 ## Installation
 
@@ -85,7 +89,8 @@ $normalized = $version->getTagVersion(); // 1.0.0-beta
 
 ### Checking the tag type
 
-To check the release type, the shorthand methods `isBeta()`, `isAlpha()` and `isReleaseCandidate()` can be used. 
+To check the release type, the shorthand methods `isBeta()`, `isAlpha()` and `isReleaseCandidate()` can be used.
+See "Supported release tags" for details.
 
 ```
 $version = VersionParser::create('1.5.2-beta');
@@ -149,3 +154,72 @@ $hasBranch = $version->hasBranch(); // true
 $branchName = $version->getBranchName(); // Foobar45
 ```
 
+## Supported release tags
+
+The parser will handle the following tags automatically, and assign
+them a build number value:
+
+- `alpha` - Alpha release
+- `beta` - Beta release
+- `rc` - Release candidate
+
+This means that comparing the same version numbers with different 
+release tags will work. For example, `1.4-beta` is considered a higher
+version than `1.4-alpha`.
+
+### Numbering tags
+
+Also supported is numbering tagged versions:
+
+- `1.0-alpha` - Implied `alpha1`
+- `1.0-alpha2` - Alpha `2`
+
+## Build numbers
+
+The version strings are intelligently converted to numbers, to allow
+comparisons and sorting. This includes the release tags like `alpha`
+or `beta`, which are converted as well. The result is a build number 
+which can be either a floating point number, or an integer.
+
+  > NOTE: These numbers are not meant to be human readable. Their sole
+    purpose is to recognize version numbers programmatically.
+   
+There are two methods related to this:
+
+```php
+use \Mistralys\VersionParser\VersionParser;
+
+$version = VersionParser::create('1.0-alpha2');
+
+$float = $version->getBuildNumber();
+$int = $version->getBuildNumberInt();
+```
+
+## Sorting versions
+
+The best way to sort versions is to use the build numbers, which allow
+numeric comparisons. Here's an example that sorts them in ascending order:
+
+```php
+use \Mistralys\VersionParser\VersionParser;
+
+$versions = array(
+    VersionParser::create('1.1'),
+    VersionParser::create('2'),
+    VersionParser::create('1.5.9'),
+    VersionParser::create('1.5.9-beta'),
+    VersionParser::create('2.0.0-alpha')
+);
+
+usort($versions, function (VersionParser $a, VersionParser $b) {
+    return $a->getBuildNumberInt() - $b->getBuildNumberInt();
+});
+```
+
+This will sort the list the following way:
+
+1. `1.1.0`
+2. `1.5.9-beta`
+3. `1.5.9`
+4. `2.0.0-alpha`
+5. `2.0.0`
