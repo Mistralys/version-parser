@@ -3,6 +3,8 @@
 - Added the possibility to register custom tag types.
 - Added `setSeparatorChar()` to change the separator character.
 - Added `setUppercase()` to convert version tags to uppercase.
+- Added support for the `snapshot` version tag type.
+- Added `isSnapshot()`.
 - Using strict types in all classes.
 - Set up PHPStan analysis, clean up to level 9.
 
