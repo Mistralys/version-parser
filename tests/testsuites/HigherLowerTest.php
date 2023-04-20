@@ -1,11 +1,15 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
-use Mistralys\VersionParser\VersionParser;
+declare(strict_types=1);
 
-final class HigherLowerTest extends TestCase
+namespace Mistralys\VersionParserTests;
+
+use Mistralys\VersionParser\VersionParser;
+use Mistralys\VersionParserTests\TestClasses\VersionParserTestCase;
+
+final class HigherLowerTest extends VersionParserTestCase
 {
-    public function test_higher()
+    public function test_higher(): void
     {
         $tests = array(
             array(
@@ -37,19 +41,25 @@ final class HigherLowerTest extends TestCase
                 'version' => '1.0-beta5',
                 'compareWith' => '1.0-beta2',
                 'higher' => true
+            ),
+            array(
+                'label' => 'Beta not higher than beta 2',
+                'version' => '1.0-beta',
+                'compareWith' => '1.0-beta2',
+                'higher' => false
             )
         );
 
-        foreach($tests as $test)
-        {
+        foreach ($tests as $test) {
             $version = VersionParser::create($test['version']);
             $compare = VersionParser::create($test['compareWith']);
 
-            $label = $test['label'].PHP_EOL.
-            'Version......: '.$version->getBuildNumberInt().' ('.$test['version'].')'.PHP_EOL.
-            'Higher than..: '.$compare->getBuildNumberInt().' ('.$test['compareWith'].')';
+            $label = $test['label'] . PHP_EOL .
+                'Version......: ' . $version->getBuildNumberInt() . ' (' . $test['version'] . ')' . PHP_EOL .
+                'Higher than..: ' . $compare->getBuildNumberInt() . ' (' . $test['compareWith'] . ')';
 
-            $this->assertSame($test['higher'], $version->isHigherThan($compare), $label);
+            $this->assertSame($test['higher'] === true, $version->isHigherThan($compare), $label);
+            $this->assertSame($test['higher'] !== true, $version->isLowerThan($compare), $label);
         }
     }
 }

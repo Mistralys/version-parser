@@ -1,11 +1,15 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
-use Mistralys\VersionParser\VersionParser;
+declare(strict_types=1);
 
-final class ParseTest extends TestCase
+namespace Mistralys\VersionParserTests;
+
+use Mistralys\VersionParser\VersionParser;
+use Mistralys\VersionParserTests\TestClasses\VersionParserTestCase;
+
+final class ParseTest extends VersionParserTestCase
 {
-    public function test_parse()
+    public function test_parse(): void
     {
         $tests = array(
             array(
@@ -93,9 +97,8 @@ final class ParseTest extends TestCase
                 'normalized' => '1.0.0'
             )
         );
-        
-        foreach($tests as $test)
-        {
+
+        foreach ($tests as $test) {
             $version = VersionParser::create($test['version']);
 
             $this->assertEquals($test['expected'], $version->getBuildNumber(), $test['label']);
@@ -103,26 +106,26 @@ final class ParseTest extends TestCase
             $this->assertEquals($test['normalized'], $version->getVersion(), $test['label']);
         }
     }
-    
-    public function test_empty() : void
+
+    public function test_empty(): void
     {
         $version = VersionParser::create('');
-        
+
         $this->assertEquals('0.0.0', $version->getVersion());
         $this->assertEquals(0, $version->getBuildNumber());
         $this->assertEquals(0, $version->getBuildNumberInt());
     }
-    
-    public function test_invalid() : void
+
+    public function test_invalid(): void
     {
         $version = VersionParser::create('eop op.kweofkjw.lpkpl-fcsfk');
-        
+
         $this->assertEquals('0.0.0', $version->getVersion());
         $this->assertEquals(0, $version->getBuildNumber());
         $this->assertEquals(0, $version->getBuildNumberInt());
     }
-    
-    public function test_getTag() : void
+
+    public function test_getTag(): void
     {
         $tests = array(
             array(
@@ -196,80 +199,79 @@ final class ParseTest extends TestCase
                 'tagNumber' => 0
             )
         );
-        
-        foreach($tests as $test)
-        {
+
+        foreach ($tests as $test) {
             $version = VersionParser::create($test['version']);
-            
-            $label = $test['label'].' ('.$test['version'].')';
-            
+
+            $label = $test['label'] . ' (' . $test['version'] . ')';
+
             $this->assertEquals($test['expected'], $version->getTag(), $label);
             $this->assertEquals($test['type'], $version->getTagType(), $label);
             $this->assertEquals($test['tagNumber'], $version->getTagNumber(), $label);
         }
     }
-    
-    public function test_no_tag() : void
+
+    public function test_no_tag(): void
     {
         $version = VersionParser::create('1.0');
-        
+
         $this->assertFalse($version->isAlpha());
         $this->assertFalse($version->isBeta());
         $this->assertFalse($version->isReleaseCandidate());
         $this->assertFalse($version->hasTag());
     }
 
-    public function test_tag_beta() : void
+    public function test_tag_beta(): void
     {
         $version = VersionParser::create('1.0-beta2');
-        
+
         $this->assertTrue($version->isBeta());
         $this->assertFalse($version->isAlpha());
         $this->assertFalse($version->isReleaseCandidate());
     }
 
-    public function test_tag_alpha() : void
+    public function test_tag_alpha(): void
     {
         $version = VersionParser::create('1.0-alpha2');
-        
+
         $this->assertFalse($version->isBeta());
         $this->assertTrue($version->isAlpha());
         $this->assertFalse($version->isReleaseCandidate());
     }
-    
-    public function test_tag_releaseCandidate() : void
+
+    public function test_tag_releaseCandidate(): void
     {
         $version = VersionParser::create('1.0-rc2');
-        
+
         $this->assertFalse($version->isBeta());
         $this->assertFalse($version->isAlpha());
         $this->assertTrue($version->isReleaseCandidate());
     }
-    
-    public function test_tag_hyphen() : void
+
+    public function test_tag_hyphen(): void
     {
         $version = VersionParser::create('1.0-rc-2');
-        
+
         $this->assertTrue($version->isReleaseCandidate());
         $this->assertEquals('rc2', $version->getTag());
     }
-    
-    public function test_tooManyDots() : void
+
+    public function test_tooManyDots(): void
     {
         $version = VersionParser::create('1.2.3.4');
-        
+
         $this->assertEquals('1.2.3', $version->getVersion());
     }
-    
-    public function test_stripSpaces() : void
+
+    public function test_stripSpaces(): void
     {
         $version = VersionParser::create('1 . 2 .
    3');
-        
+
         $this->assertEquals('1.2.3', $version->getVersion());
     }
-    
-    public function test_getBranchName() : void
+
+    public function test_getBranchName(): void
     {
         $tests = array(
             array(
@@ -291,19 +293,18 @@ final class ParseTest extends TestCase
                 'hasBranch' => true
             )
         );
-        
-        foreach($tests as $test)
-        {
+
+        foreach ($tests as $test) {
             $version = VersionParser::create($test['version']);
 
-            $label = $test['label'].' ('.$test['version'].')';
-            
+            $label = $test['label'] . ' (' . $test['version'] . ')';
+
             $this->assertEquals($test['name'], $version->getBranchName(), $label);
             $this->assertEquals($test['hasBranch'], $version->hasBranch(), $label);
         }
     }
-    
-    public function test_shortVersion() : void
+
+    public function test_shortVersion(): void
     {
         $tests = array(
             array(
@@ -327,21 +328,43 @@ final class ParseTest extends TestCase
                 'expected' => '1.1'
             )
         );
-        
-        foreach($tests as $test)
-        {
+
+        foreach ($tests as $test) {
             $version = VersionParser::create($test['version']);
-            
-            $label = $test['label'].' ('.$test['version'].')';
-            
+
+            $label = $test['label'] . ' (' . $test['version'] . ')';
+
             $this->assertEquals($test['expected'], $version->getShortVersion(), $label);
         }
     }
-    
-    public function test_normalize() : void
+
+    public function test_normalize(): void
     {
         $version = VersionParser::create('1-BETA');
-        
+
         $this->assertEquals('1.0.0-beta', $version->getTagVersion());
+    }
+
+    public function test_normalizeUppercase(): void
+    {
+        $version = VersionParser::create('1-BranchName-beta');
+
+        $this->assertEquals('1.0.0-BranchName-BETA', $version->setUppercase()->getTagVersion());
+    }
+
+    public function test_setSeparator(): void
+    {
+        $version = VersionParser::create('1-BranchName-beta2');
+
+        $this->assertEquals('1.0.0_BranchName_beta2', $version->setSeparatorChar('_')->getTagVersion());
+    }
+
+    public function test_registerTagType(): void
+    {
+        VersionParser::registerTagType('foobar', 5);
+
+        $version = VersionParser::create('1-foobar2');
+
+        $this->assertEquals('foobar', $version->getTagType());
     }
 }

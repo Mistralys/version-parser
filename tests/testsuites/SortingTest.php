@@ -1,11 +1,15 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
-use Mistralys\VersionParser\VersionParser;
+declare(strict_types=1);
 
-final class SortingTest extends TestCase
+namespace Mistralys\VersionParserTests;
+
+use Mistralys\VersionParser\VersionParser;
+use Mistralys\VersionParserTests\TestClasses\VersionParserTestCase;
+
+final class SortingTest extends VersionParserTestCase
 {
-    public function test_parse()
+    public function test_parse() : void
     {
         $versions = array(
             '1.1',
@@ -25,19 +29,16 @@ final class SortingTest extends TestCase
 
         $parsed = array();
 
-        foreach ($versions as $string)
-        {
+        foreach ($versions as $string) {
             $parsed[] = VersionParser::create($string);
         }
 
-        usort($parsed, function (VersionParser $a, VersionParser $b)
-        {
+        usort($parsed, static function (VersionParser $a, VersionParser $b) : int {
             return $a->getBuildNumberInt() - $b->getBuildNumberInt();
         });
 
         $result = array();
-        foreach($parsed as $version)
-        {
+        foreach ($parsed as $version) {
             $result[] = $version->getTagVersion();
         }
 
