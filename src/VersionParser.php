@@ -276,6 +276,11 @@ class VersionParser
     {
         return $this->getTagType() === self::TAG_TYPE_RELEASE_CANDIDATE;
     }
+
+    public function isSnapshot() : bool
+    {
+        return $this->getTagType() === self::TAG_TYPE_SNAPSHOT;
+    }
     
    /**
     * Whether a branch name is present in the version.
