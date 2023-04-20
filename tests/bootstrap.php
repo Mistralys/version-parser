@@ -7,21 +7,14 @@
  * @author Sebastian Mordziol <s.mordziol@mistralys.eu>
  */
 
-    /**
-     * The tests root folder (this file's location)
-     * @var string
-     */
-    define('TESTS_ROOT', __DIR__ );
+declare(strict_types=1);
 
-    $autoloader = realpath(TESTS_ROOT.'/../vendor/autoload.php');
-    
-    if($autoloader === false) 
-    {
-        die('ERROR: The autoloader is not present. Run composer install first.');
-    }
+$autoloader = __DIR__.'/../vendor/autoload.php';
 
-   /**
-    * The composer autoloader
-    */
-    require_once $autoloader;
+if(!file_exists($autoloader))
+{
+    die('ERROR: The autoloader is not present. Run composer install first.');
+}
+
+require_once $autoloader;
     
