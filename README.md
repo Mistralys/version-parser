@@ -10,15 +10,15 @@ The parser expects versions to be in the following format:
 
 This allows the use of a wide range of version strings. Some examples:
 
-  - 1
-  - 1.1
-  - 1.1.5
-  - 1.145.147
-  - 1.1.5-rc1
-  - 1.1.5-beta
-  - 1.1.5-beta2
-  - 1.1.5-BranchName
-  - 1.1.5-BranchName-alpha2
+  - `1`
+  - `1.1`
+  - `1.1.5`
+  - `1.145.147`
+  - `1.1.5-rc1`
+  - `1.1.5-beta`
+  - `1.1.5-beta2`
+  - `1.1.5-BranchName`
+  - `1.1.5-BranchName-alpha2`
 
   > NOTE: Hyphens are typically used as separators, but underscores
     are acceptable as well. Spaces are not supported.
@@ -29,15 +29,17 @@ Simply require the package with composer.
 
 Via command line:
 
-```
+```shell
 composer require mistralys/version-parser
 ```
 
 Via composer.json:
 
 ```json
-"require": {
-   "mistralys/version-parser": "dev-master"
+{
+    "require": {
+      "mistralys/version-parser": "dev-master"
+    }
 }
 ```
 
@@ -45,7 +47,9 @@ Via composer.json:
 
 ### Getting individual version numbers
 
-```
+```php
+use Mistralys\VersionParser\VersionParser;
+
 $version = VersionParser::create('1.5.2');
 
 $major = $version->getMajorVersion(); // 1
@@ -55,7 +59,9 @@ $patch = $version->getPatchVersion(); // 2
 
 ### Getting a version without tag
 
-```
+```php
+use Mistralys\VersionParser\VersionParser;
+
 $version = VersionParser::create('1.5.2-RC3');
 
 $number = $version->getVersion(); // 1.5.2
@@ -63,7 +69,9 @@ $number = $version->getVersion(); // 1.5.2
 
 The version is normalized to show all three levels, even if they were not specified.
 
-```
+```php
+use Mistralys\VersionParser\VersionParser;
+
 $version = VersionParser::create('1');
 
 $number = $version->getVersion(); // 1.0.0
@@ -73,7 +81,9 @@ $number = $version->getVersion(); // 1.0.0
 
 The method `getShortVersion()` retrieves a version string with the minimum possible levels.
 
-```
+```php
+use Mistralys\VersionParser\VersionParser;
+
 $version = VersionParser::create('1.0.0');
 
 $number = $version->getVersion(); // 1
@@ -81,7 +91,9 @@ $number = $version->getVersion(); // 1
 
 ### Getting the full version, normalized
 
-```
+```php
+use Mistralys\VersionParser\VersionParser;
+
 $version = VersionParser::create('1-BETA');
 
 $normalized = $version->getTagVersion(); // 1.0.0-beta
@@ -92,7 +104,9 @@ $normalized = $version->getTagVersion(); // 1.0.0-beta
 To check the release type, the shorthand methods `isBeta()`, `isAlpha()` and `isReleaseCandidate()` can be used.
 See "Supported release tags" for details.
 
-```
+```php
+use Mistralys\VersionParser\VersionParser;
+
 $version = VersionParser::create('1.5.2-beta');
 
 $isBeta = $version->isBeta(); // true
@@ -100,7 +114,9 @@ $isBeta = $version->isBeta(); // true
 
 Alternatively, it is possible to check the tag type manually.
 
-```
+```php
+use Mistralys\VersionParser\VersionParser;
+
 $version = VersionParser::create('1.5.2-beta5');
 
 if($version->getTagType() === VersionParser::TAG_TYPE_BETA)
@@ -113,7 +129,9 @@ if($version->getTagType() === VersionParser::TAG_TYPE_BETA)
 
 When no number is added to the tag, it is assumed that it is the tag #1.
 
-```
+```php
+use Mistralys\VersionParser\VersionParser;
+
 $version = VersionParser::create('1.5.2-beta');
 
 $betaVersion = $version->getTagNumber(); // 1 (implicit)
@@ -121,7 +139,9 @@ $betaVersion = $version->getTagNumber(); // 1 (implicit)
 
 With a number added:
 
-```
+```php
+use Mistralys\VersionParser\VersionParser;
+
 $version = VersionParser::create('1.5.2-beta5');
 
 $betaVersion = $version->getTagNumber(); // 5
@@ -129,7 +149,9 @@ $betaVersion = $version->getTagNumber(); // 5
 
 ### Getting the branch name
 
-```
+```php
+use Mistralys\VersionParser\VersionParser;
+
 $version = VersionParser::create('1.5.2-Foobar');
 
 $hasBranch = $version->hasBranch(); // true
@@ -138,7 +160,9 @@ $branchName = $version->getBranchName(); // Foobar
 
 This also works in combination with a release tag:
 
-```
+```php
+use Mistralys\VersionParser\VersionParser;
+
 $version = VersionParser::create('1.5.2-Foobar-RC1');
 
 $hasBranch = $version->hasBranch(); // true
@@ -147,11 +171,55 @@ $branchName = $version->getBranchName(); // Foobar
 
 Branch names may contain numbers, but no hyphens.
 
-```
+```php
+use Mistralys\VersionParser\VersionParser;
+
 $version = VersionParser::create('1.5.2-Foobar45');
 
 $hasBranch = $version->hasBranch(); // true
 $branchName = $version->getBranchName(); // Foobar45
+```
+
+### Setting the separator character
+
+By default, the branch name and tag are separated with hyphens (`-`).
+This can be adjusted to any character:
+
+```php
+use Mistralys\VersionParser\VersionParser;
+
+$version = VersionParser::create('1.5.2-BranchName-alpha5');
+
+echo $version
+    ->setSeparatorChar('_')
+    ->getTagVersion();
+```
+
+Will output:
+
+```
+1.5.2_BranchName_alpha5
+```
+
+### Converting tag names to uppercase
+
+By default, tag names are lowercased. They can be converted to 
+uppercase:
+
+```php
+use Mistralys\VersionParser\VersionParser;
+
+$version = VersionParser::create('1.5.2-BranchName-alpha5');
+
+echo $version
+    ->setUppercase()
+    ->getTagVersion();
+```
+
+Will output:
+
+```
+1.5.2-BranchName-ALPHA5
 ```
 
 ## Supported release tags
@@ -159,9 +227,10 @@ $branchName = $version->getBranchName(); // Foobar45
 The parser will handle the following tags automatically, and assign
 them a build number value:
 
-- `alpha` - Alpha release
-- `beta` - Beta release
-- `rc` - Release candidate
+- `alpha` - Alpha release, weight: `6`
+- `beta` - Beta release, weight: `4`
+- `rc` - Release candidate, weight: `2`
+- `snapshot` - Code snapshot, weight: `0`
 
 This means that comparing the same version numbers with different 
 release tags will work. For example, `1.4-beta` is considered a higher
@@ -174,6 +243,42 @@ Also supported is numbering tagged versions:
 - `1.0-alpha` - Implied `alpha1`
 - `1.0-alpha2` - Alpha `2`
 
+### Adding custom tags
+
+If you use other tag types in your application's version strings,
+they can be added so the parser recognizes them:
+
+```php
+use Mistralys\VersionParser\VersionParser;
+
+VersionParser::registerTagType('foobar', 5);
+
+$version = VersionParser::create('1.0.5-foobar2');
+
+echo $version->getTagType(); // foobar
+```
+
+If you mix custom tag types and the standard ones, be careful with
+the sorting weight you set for them, so they will be weighted correctly.
+If needed, you can change the weight of the default types to make more
+room.
+
+This for example resets them all, and inserts some new types:
+
+```php
+use Mistralys\VersionParser\VersionParser;
+
+$weight = 900; // Can be any number
+VersionParser::registerTagType(VersionParser::TAG_TYPE_ALPHA, $weight--);
+VersionParser::registerTagType(VersionParser::TAG_TYPE_BETA, $weight--);
+VersionParser::registerTagType('foobar', $weight--);
+VersionParser::registerTagType(VersionParser::TAG_TYPE_RELEASE_CANDIDATE, $weight--);
+VersionParser::registerTagType('prefinal', $weight--);
+```
+
+> NOTE: The weights are used in the generated build numbers. Changing the
+> default tag type weights will change their build numbers as well.
+
 ## Build numbers
 
 The version strings are intelligently converted to numbers, to allow
@@ -181,7 +286,7 @@ comparisons and sorting. This includes the release tags like `alpha`
 or `beta`, which are converted as well. The result is a build number 
 which can be either a floating point number, or an integer.
 
-  > NOTE: These numbers are not meant to be human readable. Their sole
+  > NOTE: These numbers are not meant to be human-readable. Their sole
     purpose is to recognize version numbers programmatically.
    
 There are two methods related to this:
