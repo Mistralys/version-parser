@@ -6,3 +6,4 @@ composer.phar
 # composer.lock
 .phpunit.result.cache
 tests/result.txt
+.phpunit.result.cache
