@@ -19,7 +19,7 @@ namespace Mistralys\VersionParser;
  * 
  * Expects version to use the following structure:
  * 
- * <code>Major.Minor.Patch-ReleaseType</code>
+ * <code>Major.Minor.Patch-(Branch or release name)-(Release type: alpha, beta...)</code>
  * 
  * Examples:
  * 
@@ -43,62 +43,49 @@ namespace Mistralys\VersionParser;
  */
 class VersionParser
 {
-    const TAG_TYPE_NONE = 'none';
-    const TAG_TYPE_BETA = 'beta';
-    const TAG_TYPE_ALPHA = 'alpha';
-    const TAG_TYPE_RELEASE_CANDIDATE = 'rc';
+    public const TAG_TYPE_NONE = 'none';
+    public const TAG_TYPE_BETA = 'beta';
+    public const TAG_TYPE_ALPHA = 'alpha';
+    public const TAG_TYPE_RELEASE_CANDIDATE = 'rc';
+    public const TAG_TYPE_SNAPSHOT = 'snapshot';
     
-   /**
-    * @var string
-    */
-    private $version;
+    private string $version;
     
-   /**
-    * @var float
-    */
-    private $buildNumber = -1;
-    
-   /**
-    * @var string
-    */
-    private $tag = '';
+    private float $buildNumber = -1.0;
     
    /**
     * @var array<int,int>
     */
-    private $parts = array();
+    private array $parts = array();
     
-   /**
-    * @var string
+    private string $tagType = self::TAG_TYPE_NONE;
+    private int $tagNumber = 0;
+    private string $branchName = '';
+    private string $separator = '-';
+    private bool $lowercase = true;
+
+    /**
+    * @var array<string,int>|NULL
     */
-    private $tagType = self::TAG_TYPE_NONE;
-    
-   /**
-    * @var integer
-    */
-    private $tagNumber = 0;
-    
-   /**
-    * @var string
-    */
-    private $branchName = '';
-    
-   /**
-    * @var array<string,int>
-    */
-    private $tagWeights = array(
-        self::TAG_TYPE_ALPHA => 6,
-        self::TAG_TYPE_BETA => 4,
-        self::TAG_TYPE_RELEASE_CANDIDATE => 2,
-        self::TAG_TYPE_NONE => 0
-    );
+    private static ?array $tagWeights = null;
     
     private function __construct(string $version)
     {
         $this->version = $version;
         
         $this->parse();
-        $this->postParse();
+    }
+
+    public function setUppercase(bool $uppercase=true) : self
+    {
+        $this->lowercase = !$uppercase;
+        return $this;
+    }
+
+    public function setSeparatorChar(string $char) : self
+    {
+        $this->separator = $char;
+        return $this;
     }
 
    /**
@@ -119,7 +106,7 @@ class VersionParser
     */
     public function getBuildNumber() : float
     {
-        if($this->buildNumber === -1)
+        if($this->buildNumber === -1.0)
         {
             $this->calculateBuildNumber();
         }
@@ -134,7 +121,7 @@ class VersionParser
     */
     public function getBuildNumberInt() : int
     {
-        return intval($this->getBuildNumber() * 1000000);
+        return (int)($this->getBuildNumber() * 1000000);
     }
     
    /**
@@ -181,9 +168,9 @@ class VersionParser
             return $version;
         }
         
-        return $version.'-'.$this->getTag();
+        return $version.$this->separator.$this->getTag();
     }
-    
+
    /**
     * Retrieves only the numeric version, omitting dots 
     * as far as possible (e.g. `1.0.0` => `1`).
@@ -192,8 +179,6 @@ class VersionParser
     */
     public function getShortVersion() : string
     {
-        $keep = array();
-        
         if($this->parts[2] > 0)
         {
             $keep = $this->parts;
@@ -217,7 +202,29 @@ class VersionParser
     */
     public function getTag() : string
     {
-        return $this->tag;
+        if($this->tagType === self::TAG_TYPE_NONE)
+        {
+            return $this->getBranchName();
+        }
+
+        $tag = $this->tagType;
+
+        if($this->tagNumber > 1)
+        {
+            $tag .= $this->tagNumber;
+        }
+
+        if(!$this->lowercase)
+        {
+            $tag = strtoupper($tag);
+        }
+
+        if($this->hasBranch())
+        {
+            $tag = $this->getBranchName().$this->separator.$tag;
+        }
+
+        return $tag;
     }
     
    /**
@@ -227,7 +234,7 @@ class VersionParser
     */
     public function hasTag() : bool
     {
-        return !empty($this->tag);
+        return $this->getTag() !== '';
     }
     
    /**
@@ -314,7 +321,7 @@ class VersionParser
         
         for($i=0; $i < 3; $i++)
         {
-            $this->parts[] = intval($parts[$i]);
+            $this->parts[] = (int)$parts[$i];
         }
     }
     
@@ -334,45 +341,19 @@ class VersionParser
 
         return $version;
     }
-    
-    private function postParse() : void
-    {
-        $this->tag = $this->normalizeTag();
-    }
-    
-    private function normalizeTag() : string
-    {
-        if($this->tagType === self::TAG_TYPE_NONE)
-        {
-            return $this->getBranchName();
-        }
-        
-        $tag = $this->tagType;
-        
-        if($this->tagNumber > 1)
-        {
-            $tag .= $this->tagNumber;
-        }
-        
-        if($this->hasBranch())
-        {
-            $tag = $this->getBranchName().'-'.$tag;
-        }
-        
-        return $tag;
-    }
-    
+
     private function formatTagNumber() : string
     {
+        $tagWeights = self::getTagWeights();
         $positions = 2 * 3;
-        $weight = $this->tagWeights[$this->getTagType()];
+        $weight = $tagWeights[$this->getTagType()];
         
         if($weight > 0)
         {
             $number = sprintf('%0'.$weight.'d', $this->tagNumber);
-            $number = str_pad($number, $positions, '0', STR_PAD_RIGHT);
+            $number = str_pad($number, $positions, '0');
 
-            $number = intval(str_repeat('9', $positions)) - intval($number);
+            $number = (int)str_repeat('9', $positions) - (int)$number;
             return '.'.$number;
         }
         
@@ -403,17 +384,17 @@ class VersionParser
     {
         if(is_numeric($part))
         {
-            $this->tagNumber = intval($part);
+            $this->tagNumber = (int)$part;
             return;
         }
         
-        $types = array_keys($this->tagWeights);
+        $types = array_keys(self::getTagWeights());
         $type = '';
         $lower = strtolower($part);
         
         foreach($types as $tagType)
         {
-            if(strstr($lower, $tagType))
+            if(strpos($lower, $tagType) !== false)
             {
                 $type = $tagType;
                 $part = str_replace($tagType, '', $lower);
@@ -434,7 +415,7 @@ class VersionParser
         
         if(is_numeric($part))
         {
-            $this->tagNumber = intval($part);
+            $this->tagNumber = (int)$part;
         }
     }
     
@@ -446,11 +427,11 @@ class VersionParser
             sprintf('%03d', $this->getPatchVersion())
         );
         
-        $number = floatval(implode('', $parts));
+        $number = (float)implode('', $parts);
         
         if($this->tagNumber > 0)
         {
-            $number -= floatval($this->formatTagNumber());
+            $number -= (float)$this->formatTagNumber();
         }
         
         $this->buildNumber = $number;
@@ -477,5 +458,48 @@ class VersionParser
     {
         return $this->getBuildNumberInt() < $version->getBuildNumberInt();
     }
-}
 
+    /**
+     * Registers a tag name to look for in version strings,
+     * in addition to the bundled tags like "beta" or "alpha".
+     *
+     * NOTE: Can also be used to change the weight of the
+     * default tags.
+     *
+     * @param string $name
+     * @param int $weight Used for version comparisons, like beta > alpha.
+ *                  The higher the weight, the further it "sinks down", e.g.
+     *              "alpha" has a default weight of "6" and beta a weight of "4".
+     * @return void
+     */
+    public static function registerTagType(string $name, int $weight) : void
+    {
+        $tagWeights = self::getTagWeights();
+        $tagWeights[$name] = $weight;
+
+        self::$tagWeights = $tagWeights;
+    }
+
+    /**
+     * @return array<string,int>
+     */
+    public static function getTagWeights() : array
+    {
+        if(!isset(self::$tagWeights)) {
+            self::$tagWeights = array(
+                self::TAG_TYPE_ALPHA => 6,
+                self::TAG_TYPE_BETA => 4,
+                self::TAG_TYPE_RELEASE_CANDIDATE => 2,
+                self::TAG_TYPE_SNAPSHOT => 0,
+                self::TAG_TYPE_NONE => 0
+            );
+        }
+
+        return self::$tagWeights;
+    }
+
+    public static function resetTagTypes() : void
+    {
+        self::$tagWeights = null;
+    }
+}
