@@ -219,6 +219,7 @@ final class ParseTest extends VersionParserTestCase
         $this->assertFalse($version->isBeta());
         $this->assertFalse($version->isReleaseCandidate());
         $this->assertFalse($version->hasTag());
+        $this->assertFalse($version->isSnapshot());
     }
 
     public function test_tag_beta(): void
@@ -246,6 +247,13 @@ final class ParseTest extends VersionParserTestCase
         $this->assertFalse($version->isBeta());
         $this->assertFalse($version->isAlpha());
         $this->assertTrue($version->isReleaseCandidate());
+    }
+
+    public function test_tag_snapshot(): void
+    {
+        $version = VersionParser::create('1.0-snapshot');
+
+        $this->assertTrue($version->isSnapshot());
     }
 
     public function test_tag_hyphen(): void
