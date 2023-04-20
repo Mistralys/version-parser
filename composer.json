@@ -13,14 +13,18 @@
 	],
 	"autoload" : 
 	{
-		"psr-4" : 
-		{
-			"Mistralys\\VersionParser\\" : "src/"
-		},
-		"classmap" : 
+		"classmap" :
 		[
 			"src/"
 		]
+	},
+	"autoload-dev": {
+		"classmap": [
+			"tests/classes"
+		]
+	},
+	"require": {
+		"php": ">=7.4"
 	},
 	"require-dev" : 
 	{
