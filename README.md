@@ -10,18 +10,25 @@ The parser expects versions to be in the following format:
 
 This allows the use of a wide range of version strings. Some examples:
 
-  - `1`
-  - `1.1`
-  - `1.1.5`
-  - `1.145.147`
-  - `1.1.5-rc1`
-  - `1.1.5-beta`
-  - `1.1.5-beta2`
-  - `1.1.5-BranchName`
-  - `1.1.5-BranchName-alpha2`
+- `1`
+- `1.1`
+- `1.1.5`
+- `1.145.147`
+- `1.1.5-rc1`
+- `1.1.5-beta`
+- `1.1.5-beta2`
+- `1.1.5-beta.42`
+- `1.1.5-BranchName`
+- `1.1.5-BranchName-alpha2`
+- `1.1.5 BranchName A2` _Spaces are allowed_
+- `1.1.5 "Branch name"` _Quotes are stripped_
+- `1.1.5 (BranchName) / Alpha 2` _Special characters are filtered out_
+- `1.1.5-DEV Branch Name` _Branch names after the tag type_
 
-  > NOTE: Hyphens are typically used as separators, but underscores
-    are acceptable as well. Spaces are not supported.
+Most special characters are filtered out, which means that it is 
+very lenient in what is passed to it. After the version number,
+anything that is not a tag qualifier (`beta`, `alpha`, etc.) is
+considered the branch name.
 
 ## Installation
 
@@ -101,8 +108,8 @@ $normalized = $version->getTagVersion(); // 1.0.0-beta
 
 ### Checking the tag type
 
-To check the release type, the shorthand methods `isBeta()`, `isAlpha()` and `isReleaseCandidate()` can be used.
-See "Supported release tags" for details.
+To check the release type, the shorthand methods `isBeta()`, `isAlpha()`, 
+etc. can be used. See "Supported release tags" for details.
 
 ```php
 use Mistralys\VersionParser\VersionParser;
@@ -169,21 +176,21 @@ $hasBranch = $version->hasBranch(); // true
 $branchName = $version->getBranchName(); // Foobar
 ```
 
-Branch names may contain numbers, but no hyphens.
+Branch names may contain special characters. Quotes are filtered out:
 
 ```php
 use Mistralys\VersionParser\VersionParser;
 
-$version = VersionParser::create('1.5.2-Foobar45');
+$version = VersionParser::create('1.5.2 "Foobar/42"');
 
 $hasBranch = $version->hasBranch(); // true
-$branchName = $version->getBranchName(); // Foobar45
+$branchName = $version->getBranchName(); // Foobar/42
 ```
 
 ### Setting the separator character
 
-By default, the branch name and tag are separated with hyphens (`-`).
-This can be adjusted to any character:
+By default, the branch name and tag are separated with hyphens (`-`) 
+when normalizing the version string. This can be adjusted to any character:
 
 ```php
 use Mistralys\VersionParser\VersionParser;
@@ -201,10 +208,10 @@ Will output:
 1.5.2_BranchName_alpha5
 ```
 
-### Converting tag names to uppercase
+### Converting tag types to uppercase
 
-By default, tag names are lowercased. They can be converted to 
-uppercase:
+By default, tag types are converted to lowercase when normalizing the
+version string. They can be switched to uppercase instead:
 
 ```php
 use Mistralys\VersionParser\VersionParser;
@@ -212,7 +219,7 @@ use Mistralys\VersionParser\VersionParser;
 $version = VersionParser::create('1.5.2-BranchName-alpha5');
 
 echo $version
-    ->setUppercase()
+    ->setTagUppercase()
     ->getTagVersion();
 ```
 
@@ -227,10 +234,11 @@ Will output:
 The parser will handle the following tags automatically, and assign
 them a build number value:
 
+- `dev` or `snapshot` - Development release, weight: `8`
 - `alpha` - Alpha release, weight: `6`
 - `beta` - Beta release, weight: `4`
 - `rc` - Release candidate, weight: `2`
-- `snapshot` - Code snapshot, weight: `0`
+- `patch` - Patch/bugfix release, weight: `1`
 
 This means that comparing the same version numbers with different 
 release tags will work. For example, `1.4-beta` is considered a higher
@@ -251,11 +259,14 @@ they can be added so the parser recognizes them:
 ```php
 use Mistralys\VersionParser\VersionParser;
 
-VersionParser::registerTagType('foobar', 5);
+// The third parameter is the short variant of the tag type.
+VersionParser::registerTagType('foobar', 5, 'f');
 
 $version = VersionParser::create('1.0.5-foobar2');
+$short = VersionParser::create('1.0.5-F2');
 
 echo $version->getTagType(); // foobar
+echo $short->getTagType(); // foobar
 ```
 
 If you mix custom tag types and the standard ones, be careful with
@@ -263,7 +274,8 @@ the sorting weight you set for them, so they will be weighted correctly.
 If needed, you can change the weight of the default types to make more
 room.
 
-This for example resets them all, and inserts some new types:
+This for example resets the weights for some existing tag types, and 
+inserts new ones:
 
 ```php
 use Mistralys\VersionParser\VersionParser;
