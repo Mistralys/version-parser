@@ -54,9 +54,11 @@ final class HigherLowerTest extends VersionParserTestCase
             $version = VersionParser::create($test['version']);
             $compare = VersionParser::create($test['compareWith']);
 
-            $label = $test['label'] . PHP_EOL .
-                'Version......: ' . $version->getBuildNumberInt() . ' (' . $test['version'] . ')' . PHP_EOL .
-                'Higher than..: ' . $compare->getBuildNumberInt() . ' (' . $test['compareWith'] . ')';
+            $label = $test['label'].PHP_EOL.
+            'Version......: '.$version->getBuildNumberInt().' ('.$test['version'].')'.PHP_EOL.
+            'Higher than..: '.$compare->getBuildNumberInt().' ('.$test['compareWith'].')'.PHP_EOL.
+            print_r($version->toArray(), true).PHP_EOL.
+            print_r($compare->toArray(), true);
 
             $this->assertSame($test['higher'] === true, $version->isHigherThan($compare), $label);
             $this->assertSame($test['higher'] !== true, $version->isLowerThan($compare), $label);

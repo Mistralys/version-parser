@@ -62,6 +62,27 @@ final class ParseTest extends VersionParserTestCase
                 'normalized' => '1.0.0'
             ),
             array(
+                'label' => 'With beta tag, numbered 2, with dot separator',
+                'version' => '1.0.0-beta.2',
+                'expected' => 999999.000201,
+                'int' => 999999000201,
+                'normalized' => '1.0.0'
+            ),
+            array(
+                'label' => 'With beta tag, numbered 2, with hyphen separator',
+                'version' => '1.0.0-beta-2',
+                'expected' => 999999.000201,
+                'int' => 999999000201,
+                'normalized' => '1.0.0'
+            ),
+            array(
+                'label' => 'With beta tag, numbered 2, with underscore separator',
+                'version' => '1.0.0-beta_2',
+                'expected' => 999999.000201,
+                'int' => 999999000201,
+                'normalized' => '1.0.0'
+            ),
+            array(
                 'label' => 'With alpha tag',
                 'version' => '1.0.0-alpha',
                 'expected' => 999999.000002,
@@ -101,7 +122,7 @@ final class ParseTest extends VersionParserTestCase
         foreach ($tests as $test) {
             $version = VersionParser::create($test['version']);
 
-            $this->assertEquals($test['expected'], $version->getBuildNumber(), $test['label']);
+            $this->assertEquals($test['expected'], $version->getBuildNumber(), $test['label'].print_r($version->toArray(), true));
             $this->assertEquals($test['int'], $version->getBuildNumberInt(), $test['label']);
             $this->assertEquals($test['normalized'], $version->getVersion(), $test['label']);
         }
@@ -203,7 +224,7 @@ final class ParseTest extends VersionParserTestCase
         foreach ($tests as $test) {
             $version = VersionParser::create($test['version']);
 
-            $label = $test['label'] . ' (' . $test['version'] . ')';
+            $label = $test['label'].' ('.$test['version'].')'.PHP_EOL.print_r($version->toArray(), true);
 
             $this->assertEquals($test['expected'], $version->getTag(), $label);
             $this->assertEquals($test['type'], $version->getTagType(), $label);
@@ -215,23 +236,25 @@ final class ParseTest extends VersionParserTestCase
     {
         $version = VersionParser::create('1.0');
 
-        $this->assertFalse($version->isAlpha());
-        $this->assertFalse($version->isBeta());
-        $this->assertFalse($version->isReleaseCandidate());
         $this->assertFalse($version->hasTag());
-        $this->assertFalse($version->isSnapshot());
     }
 
-    public function test_tag_beta(): void
+    public function test_tag_info() : void
     {
-        $version = VersionParser::create('1.0-beta2');
+        $version = VersionParser::create('1.0-beta11');
 
-        $this->assertTrue($version->isBeta());
-        $this->assertFalse($version->isAlpha());
-        $this->assertFalse($version->isReleaseCandidate());
+        $tag = $version->getTagInfo();
+        $this->assertNotNull($tag);
+
+        $testLabel = print_r($version->toArray(), true);
+
+        $this->assertTrue($tag->isBeta(), $testLabel);
+        $this->assertFalse($tag->isAlpha(), $testLabel);
+        $this->assertFalse($tag->isReleaseCandidate(), $testLabel);
+        $this->assertSame(11, $tag->getNumber(), $testLabel);
     }
 
-    public function test_tag_alpha(): void
+    public function test_tag_alpha() : void
     {
         $version = VersionParser::create('1.0-alpha2');
 
@@ -264,7 +287,54 @@ final class ParseTest extends VersionParserTestCase
         $this->assertEquals('rc2', $version->getTag());
     }
 
-    public function test_tooManyDots(): void
+    public function test_tag_dot() : void
+    {
+        $version = VersionParser::create('1.0-rc.2');
+
+        $this->assertTrue($version->isReleaseCandidate());
+        $this->assertEquals('rc2', $version->getTag());
+    }
+
+    public function test_tag_underscore() : void
+    {
+        $version = VersionParser::create('1.0-rc_2');
+
+        $this->assertTrue($version->isReleaseCandidate());
+        $this->assertEquals('rc2', $version->getTag());
+    }
+
+    public function test_tag_and_branch() : void
+    {
+        $version = VersionParser::create('1.0-BranchName-RC');
+
+        $this->assertTrue($version->isReleaseCandidate());
+        $this->assertEquals('BranchName-rc', $version->getTag());
+        $this->assertEquals('BranchName', $version->getBranchName(), print_r($version->toArray(), true));
+    }
+
+    public function test_branchCanS0tartWithNumber() : void
+    {
+        $version = VersionParser::create('1.0-42BranchName-RC');
+
+        $testLabel = print_r($version->toArray(), true);
+
+        $this->assertEquals('1.0.0', $version->getVersion(), $testLabel);
+        $this->assertTrue($version->isReleaseCandidate(), $testLabel);
+        $this->assertEquals('42BranchName-rc', $version->getTag(), $testLabel);
+        $this->assertEquals('42BranchName', $version->getBranchName(), $testLabel);
+    }
+
+    public function test_branchCanContainSpecialChars() : void
+    {
+        $version = VersionParser::create('1.5.2 "Foobar/42"');
+
+        $testLabel = print_r($version->toArray(), true);
+
+        $this->assertEquals('1.5.2', $version->getVersion(), $testLabel);
+        $this->assertEquals('Foobar/42', $version->getBranchName(), $testLabel);
+    }
+
+    public function test_tooManyDots() : void
     {
         $version = VersionParser::create('1.2.3.4');
 
@@ -277,6 +347,63 @@ final class ParseTest extends VersionParserTestCase
    3');
 
         $this->assertEquals('1.2.3', $version->getVersion());
+    }
+
+    public function test_preserveSpacesInTag(): void
+    {
+        $version = VersionParser::create('1 . 2 . 3 BranchName RC');
+
+        $testLabel = print_r($version->toArray(), true);
+
+        $this->assertEquals('1.2.3', $version->getVersion(), $testLabel);
+        $this->assertEquals('BranchName', $version->getBranchName(), $testLabel);
+        $this->assertEquals('rc', $version->getTagType(), $testLabel);
+    }
+
+    public function test_stripSpecialChars() : void
+    {
+        $version = VersionParser::create('1.2 (BranchName) / Alpha2');
+
+        $testLabel = print_r($version->toArray(), true);
+
+        $this->assertEquals('1.2.0', $version->getVersion(), $testLabel);
+        $this->assertEquals('BranchName', $version->getBranchName(), $testLabel);
+        $this->assertEquals('alpha', $version->getTagType(), $testLabel);
+    }
+
+    public function test_preserveOriginalCharsInBranch() : void
+    {
+        $version = VersionParser::create('1.2 "Super:branch"');
+
+        $testLabel = print_r($version->toArray(), true);
+
+        $this->assertEquals('1.2.0', $version->getVersion(), $testLabel);
+        $this->assertEquals('Super:branch', $version->getBranchName(), $testLabel);
+    }
+
+    public function test_branchNameAfterTag() : void
+    {
+        $version = VersionParser::create('1.2-beta2 "Super branch"');
+
+        $testLabel = print_r($version->toArray(), true);
+
+        $this->assertEquals('1.2.0', $version->getVersion(), $testLabel);
+        $this->assertEquals('beta', $version->getTagType(), $testLabel);
+        $this->assertEquals('Super branch', $version->getBranchName(), $testLabel);
+    }
+
+    public function test_branchNameBeforeAndAfterTag() : void
+    {
+        $version = VersionParser::create('1.2 Super beta branch');
+
+        $testLabel = print_r($version->toArray(), true);
+
+        $this->assertEquals('1.2.0', $version->getVersion(), $testLabel);
+        $this->assertEquals('beta', $version->getTagType(), $testLabel);
+
+        // This cannot be resolved back to the original branch name,
+        // because the tag qualifier is in the middle of it.
+        $this->assertEquals('Super-branch', $version->getBranchName(), $testLabel);
     }
 
     public function test_getBranchName(): void
@@ -305,7 +432,7 @@ final class ParseTest extends VersionParserTestCase
         foreach ($tests as $test) {
             $version = VersionParser::create($test['version']);
 
-            $label = $test['label'] . ' (' . $test['version'] . ')';
+            $label = $test['label'].' ('.$test['version'].')'.PHP_EOL.print_r($version->toArray(), true);
 
             $this->assertEquals($test['name'], $version->getBranchName(), $label);
             $this->assertEquals($test['hasBranch'], $version->hasBranch(), $label);
@@ -357,7 +484,7 @@ final class ParseTest extends VersionParserTestCase
     {
         $version = VersionParser::create('1-BranchName-beta');
 
-        $this->assertEquals('1.0.0-BranchName-BETA', $version->setUppercase()->getTagVersion());
+        $this->assertEquals('1.0.0-BranchName-BETA', $version->setTagUppercase()->getTagVersion(), print_r($version->toArray(), true));
     }
 
     public function test_setSeparator(): void
