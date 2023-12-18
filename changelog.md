@@ -1,3 +1,6 @@
+### v2.1.1 - Branch name normalization
+- Branch names are now also normalized.
+
 ### v2.1.0 - Parser improvements
 - Allowed more separator characters for the tag number ([#2](https://github.com/Mistralys/version-parser/issues/2))
 - Improved the branch and tag detection.
