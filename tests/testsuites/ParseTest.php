@@ -201,21 +201,21 @@ final class ParseTest extends VersionParserTestCase
             array(
                 'label' => 'Custom tag name, without number (beta tag number)',
                 'version' => '1.0-custom-beta5',
-                'expected' => 'custom-beta5',
+                'expected' => 'Custom-beta5',
                 'type' => VersionParser::TAG_TYPE_BETA,
                 'tagNumber' => 5
             ),
             array(
                 'label' => 'Custom tag name, with number (beta tag number)',
                 'version' => '1.0-custom3-beta5',
-                'expected' => 'custom3-beta5',
+                'expected' => 'Custom3-beta5',
                 'type' => VersionParser::TAG_TYPE_BETA,
                 'tagNumber' => 5
             ),
             array(
                 'label' => 'Custom tag name, without known tag (no tag number)',
                 'version' => '1.0-custom3',
-                'expected' => 'custom3',
+                'expected' => 'Custom3',
                 'type' => VersionParser::TAG_TYPE_NONE,
                 'tagNumber' => 0
             )
@@ -381,6 +381,18 @@ final class ParseTest extends VersionParserTestCase
         $this->assertEquals('Super:branch', $version->getBranchName(), $testLabel);
     }
 
+    public function test_normalizeBranchName() : void
+    {
+        $version = VersionParser::create('1.2 "Super branch/epic*new"');
+
+        $testLabel = print_r($version->toArray(), true);
+
+        $tag = $version->getTagInfo();
+        $this->assertNotNull($tag);
+        $this->assertEquals('Super branch/epic*new', $tag->getBranchName(), $testLabel);
+        $this->assertEquals('SuperBranch/Epic*New', $tag->getBranchNameNormalized(), $testLabel);
+    }
+
     public function test_branchNameAfterTag() : void
     {
         $version = VersionParser::create('1.2-beta2 "Super branch"');
@@ -390,6 +402,7 @@ final class ParseTest extends VersionParserTestCase
         $this->assertEquals('1.2.0', $version->getVersion(), $testLabel);
         $this->assertEquals('beta', $version->getTagType(), $testLabel);
         $this->assertEquals('Super branch', $version->getBranchName(), $testLabel);
+        $this->assertEquals('1.2.0-SuperBranch-beta2', $version->getTagVersion(), $testLabel);
     }
 
     public function test_branchNameBeforeAndAfterTag() : void
