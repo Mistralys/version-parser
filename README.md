@@ -6,7 +6,7 @@ PHP utility used to parse application version strings, and retrieve information 
 
 The parser expects versions to be in the following format:
 
-`MajorVersion.MinorVersion.PatchVersion-BranchName-ReleaseTagNumber`
+`MajorVersion.MinorVersion.PatchVersion-BranchOrTag`
 
 This allows the use of a wide range of version strings. Some examples:
 
@@ -101,10 +101,13 @@ $number = $version->getVersion(); // 1
 ```php
 use Mistralys\VersionParser\VersionParser;
 
-$version = VersionParser::create('1-BETA');
+$version = VersionParser::create("1.2.0 'Cool Release' RC5");
 
-$normalized = $version->getTagVersion(); // 1.0.0-beta
+$normalized = $version->getTagVersion(); // 1.0.0-CoolRelease-rc5
 ```
+
+> NOTE: The branch name is also normalized. Words are capitalized,
+> and spaces are removed. Other special characters are preserved.
 
 ### Checking the tag type
 
