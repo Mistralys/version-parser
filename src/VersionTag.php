@@ -36,12 +36,25 @@ class VersionTag
         return $this->branch;
     }
 
+    public function getBranchNameNormalized() : string
+    {
+        $branch = $this->getBranchName();
+
+        if(empty($branch)) {
+            return '';
+        }
+
+        $branch = ucwords($branch, " ._-:/[({=+*^!?");
+        return str_replace(' ', '', $branch);
+    }
+
     public function getNormalized() : string
     {
         $tagName = $this->getTagName();
+        $branch = $this->getBranchNameNormalized();
 
         if(empty($tagName)) {
-            return $this->getBranchName();
+            return $branch;
         }
 
         if($this->number > 1) {
@@ -50,8 +63,8 @@ class VersionTag
             $name = $tagName;
         }
 
-        if(!empty($this->branch)) {
-            $name = $this->branch.$this->version->getSeparatorChar().$name;
+        if(!empty($branch)) {
+            $name = $branch.$this->version->getSeparatorChar().$name;
         }
 
         return $name;
