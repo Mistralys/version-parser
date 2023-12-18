@@ -347,7 +347,7 @@ $versions = array(
     VersionParser::create('2.0.0-alpha')
 );
 
-usort($versions, function (VersionParser $a, VersionParser $b) {
+usort($versions, static function (VersionParser $a, VersionParser $b) : int {
     return $a->getBuildNumberInt() - $b->getBuildNumberInt();
 });
 ```
