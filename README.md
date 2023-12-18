@@ -132,6 +132,25 @@ if($version->getTagType() === VersionParser::TAG_TYPE_BETA)
 }
 ```
 
+The tag info object that can be accessed with the `getTagInfo()`
+method goes more in depth. 
+
+For example, the method `getTagName()` will return the tag type 
+exactly as used in the version string, whereas `getTagType()` will 
+only return the long type variant (e.g. `beta` instead of `b`):
+
+```php
+use Mistralys\VersionParser\VersionParser;
+
+$tag = VersionParser::create('1.5.2-B2')->getTagInfo();
+
+if($tag !== null)
+{
+    echo $tag->getTagName(); // b
+    echo $tag->getTagType(); // beta
+}
+```
+
 ### Getting the tag number
 
 When no number is added to the tag, it is assumed that it is the tag #1.
