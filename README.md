@@ -261,10 +261,11 @@ them a build number value:
 - `beta` - Beta release, weight: `4`
 - `rc` - Release candidate, weight: `2`
 - `patch` - Patch/bugfix release, weight: `1`
+- `stable` - Stable release, weight: `0`
 
 This means that comparing the same version numbers with different 
 release tags will work. For example, `1.4-beta` is considered a higher
-version than `1.4-alpha`.
+version than `1.4-alpha`, because `beta` has a lower weight than `alpha`.
 
 ### Numbering tags
 
