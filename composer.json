@@ -24,7 +24,8 @@
 		]
 	},
 	"require": {
-		"php": ">=7.4"
+		"php": ">=7.4",
+		"symfony/polyfill-php80": ">=v1.26.0"
 	},
 	"require-dev" : 
 	{
