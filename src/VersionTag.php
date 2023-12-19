@@ -158,12 +158,15 @@ class VersionTag implements Stringable
         return $this->getTagType() === $type || $this->getTagName() === $type;
     }
 
+    /**
+     * @return array{tagName:string, tagType:string, number:int, branch:string, weight:int, normalized:string}
+     */
     public function toArray() : array
     {
         return array(
             'tagName' => $this->getTagName(),
             'tagType' => $this->getTagType(),
-            'number' => $this->getTagName(),
+            'number' => $this->getNumber(),
             'branch' => $this->getBranchName(),
             'weight' => $this->getWeight(),
             'normalized' => $this->getNormalized()

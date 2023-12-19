@@ -26,6 +26,9 @@ class TagWeights
         VersionParser::TAG_TYPE_DEV_SHORT => 8
     );
 
+    /**
+     * @var array<string,int>|null
+     */
     private static ?array $tagWeights = null;
 
     /**

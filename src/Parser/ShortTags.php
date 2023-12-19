@@ -16,8 +16,14 @@ class ShortTags
         VersionParser::TAG_TYPE_DEV => VersionParser::TAG_TYPE_DEV_SHORT
     );
 
+    /**
+     * @var array<string,string>|null
+     */
     private static ?array $shortTags = null;
 
+    /**
+     * @return array<string,string>
+     */
     public static function getTagNames() : array
     {
         if(!isset(self::$shortTags)) {

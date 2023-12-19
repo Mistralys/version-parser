@@ -77,10 +77,6 @@ class VersionParser implements Stringable
     private string $separator = '-';
     private bool $lowercase = true;
 
-    private static ?array $tagWeights = null;
-
-    private static ?array $shortTags = null;
-
     private string $original;
 
     private string $tagParts = '';
@@ -263,7 +259,7 @@ class VersionParser implements Stringable
         return '';
     }
 
-    public function getTagInfo() : VersionTag
+    public function getTagInfo() : ?VersionTag
     {
         return $this->tag;
     }
@@ -418,6 +414,9 @@ class VersionParser implements Stringable
         $this->tag = (new ComponentDetector($this, $this->tagParts))->detectTag();
     }
 
+    /**
+     * @return array{originalVersion:string,normalized:string,majorVersion:int,minorVersion:int,patchVersion:int,shortVersion:string,buildNumber:float,buildNumberInt:int,tag:array<string,mixed>|null}
+     */
     public function toArray() : array
     {
         $tag = null;

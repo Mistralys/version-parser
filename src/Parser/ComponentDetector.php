@@ -65,7 +65,7 @@ class ComponentDetector
             $matches
         );
 
-        if(empty($matches[0])) {
+        if(empty($matches[1])) {
             return;
         }
 
@@ -90,9 +90,9 @@ class ComponentDetector
         }
 
         $matches = $this->nullifyEmpty($matches);
-        $tag = $matches[2] ?? $matches[5];
+        $tag = $matches[2] ?? $matches[5] ?? '';
         $number = $matches[3] ?? 0;
-        $branch = $this->detectOriginalBranch($matches[1] ?? $matches[4]);
+        $branch = $this->detectOriginalBranch($matches[1] ?? $matches[4] ?? '');
 
         $this->tag = new VersionTag(
             $this->version,
@@ -138,10 +138,10 @@ class ComponentDetector
         }
 
         $matches = $this->nullifyEmpty($matches);
-        $tag = $matches[1] ?? $matches[3];
+        $tag = $matches[1] ?? $matches[3] ?? '';
         $number = $matches[2] ?? 0;
 
-        $branch = str_replace($matches[0], '-', $this->tagParts);
+        $branch = str_replace((string)$matches[0], '-', $this->tagParts);
 
         while(strpos($branch, '--') !== false) {
             $branch = str_replace('--', '-', $branch);
@@ -172,9 +172,9 @@ class ComponentDetector
         }
 
         $matches = $this->nullifyEmpty($matches);
-        $tag = $matches[1] ?? $matches[4];
+        $tag = $matches[1] ?? $matches[4] ?? '';
         $number = $matches[2] ?? 0;
-        $branch = $matches[3] ?? $matches[5];
+        $branch = $matches[3] ?? $matches[5] ?? '';
 
         $this->tag = new VersionTag(
             $this->version,
@@ -186,6 +186,10 @@ class ComponentDetector
         return true;
     }
 
+    /**
+     * @param array<int,string> $values
+     * @return array<int,string|null>
+     */
     private function nullifyEmpty(array $values) : array
     {
         foreach($values as $idx => $value) {
