@@ -2,6 +2,7 @@
 - Branch names are now also normalized.
 - Version and tag now implement `Stringable`.
 - Added dependency to `symfony/polyfill-php80` in preparation for PHP8 conversion.
+- PHPStan clean up to level 9.
 
 ### v2.1.0 - Parser improvements
 - Allowed more separator characters for the tag number ([#2](https://github.com/Mistralys/version-parser/issues/2))
