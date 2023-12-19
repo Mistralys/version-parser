@@ -6,8 +6,9 @@ namespace Mistralys\VersionParser;
 
 use Mistralys\VersionParser\Parser\ShortTags;
 use Mistralys\VersionParser\Parser\TagWeights;
+use Stringable;
 
-class VersionTag
+class VersionTag implements Stringable
 {
     private string $tagName;
     private int $number;
@@ -167,5 +168,10 @@ class VersionTag
             'weight' => $this->getWeight(),
             'normalized' => $this->getNormalized()
         );
+    }
+
+    public function __toString() : string
+    {
+        return $this->getNormalized();
     }
 }

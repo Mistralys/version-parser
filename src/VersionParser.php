@@ -15,6 +15,7 @@ use Mistralys\VersionParser\Parser\ComponentDetector;
 use Mistralys\VersionParser\Parser\NumberDetector;
 use Mistralys\VersionParser\Parser\ShortTags;
 use Mistralys\VersionParser\Parser\TagWeights;
+use Stringable;
 
 /**
  * Version number parsing utility: parses version numbers,
@@ -47,7 +48,7 @@ use Mistralys\VersionParser\Parser\TagWeights;
  * @package VersionParser
  * @author Sebastian Mordziol <s.mordziol@mistralys.eu>
  */
-class VersionParser
+class VersionParser implements Stringable
 {
     public const TAG_TYPE_NONE = 'none';
     public const TAG_TYPE_BETA = 'beta';
@@ -519,5 +520,10 @@ class VersionParser
     public function getSeparatorChar() : string
     {
         return $this->separator;
+    }
+
+    public function __toString() : string
+    {
+        return $this->getTagVersion();
     }
 }
